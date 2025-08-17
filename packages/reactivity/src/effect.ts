@@ -11,6 +11,24 @@ export function effect (fn, options?) {
 }
 export let activeEffect
 
+function preCleanEffect (effect) {
+  effect.__depsLenfth = 0
+  effect._trackId++//每次执行，id都加一
+}
+
+function postCleanEffect (effect) {
+  //多出来的要删掉
+  if(effect.deps.length>effect.__depsLenfth){
+    for(let i=effect.__depsLenfth;i<effect.deps.length;i++){
+      cleanDepEffect(effect.deps[i],effect)
+      //删除映射表对应的effect
+    }
+  }
+  effect.deps.length = effect.__depsLenfth
+  //更改他的长度
+  
+}
+
 // effect 函数内部创建一个响应式effect
 // effectScope.stop()停止所有的effect不参加响应式处理
 class ReactiveEffect {
@@ -30,8 +48,13 @@ class ReactiveEffect {
     let parent = activeEffect
     try {
       activeEffect = this
-      return this.fn()
+      //要将上一次的依赖清除掉
+
+      preCleanEffect(this)
+
+      return this.fn() //收集依赖
     } finally {
+      postCleanEffect(this)
       activeEffect = parent
     }
   }
@@ -40,12 +63,31 @@ class ReactiveEffect {
   }
 }
 
+function cleanDepEffect (dep,effect) {
+  dep.delete(effect)
+  if (dep.size === 0) {
+    dep.cleanup()
+  }
+}
 
 //双向记忆
 export function trackEffect (effect, dep) {
-  dep.set(effect,effect._trackId)
+//trackId是用于记录执行次数（防止一个属性在当前effect多次依赖收集）只收集一次
+//拿到上次依赖的和这次的进行比较
+
+  if (dep.get(effect)!== effect._trackId){
+    dep.set(effect,effect._trackId)
+  }
+  let oldDep = effect.deps[effect._depsLength]
+  if(oldDep!== dep){
+    if(oldDep){
+      cleanDepEffect(oldDep,effect)
+    }
+    effect.deps[effect._depsLength++]=dep
+  }else{
+    effect._depsLength++
+  }
   //还要让effect收集dep
-  effect.deps[effect._depsLength++]=dep
 }
 
 
