@@ -1,0 +1,25 @@
+{
+  "name": "vue3.4",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "description": "vue源码框架",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node scripts/dev.js reactivity -f esm"
+  },
+  "author": "xh",
+  "license": "ISC",
+  "devDependencies": {
+    "esbuild": "^0.25.6",
+    "minimist": "^1.2.8",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@vue/reactivity": "^3.5.17",
+    "@vue/shared": "^3.5.17"
+  }
+}
