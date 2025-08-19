@@ -1,5 +1,7 @@
 import { activeEffect } from './effect'
+import { reactive } from './reactive'
 import { track, trigger } from './reactiveEffct'
+import { isObject } from '../../shared/src/index';
 
 export enum ReactiveFlags {
   IS_REACTIVE = '__v_isReactive' // 基本上唯一
@@ -14,7 +16,12 @@ export const mutableHandlers: ProxyHandler<any> = {
 
     track(target, key)
     //收集了那个对象哪个属性，和effect关联一起
-    return Reflect.get(target, key, receiver)
+    let res = Reflect.get(target, key, receiver)
+    if (isObject(res)) {
+      //当获取的属性值是一个对象，就进行代理，递归代理哦
+      return reactive(res)
+    }
+    return res
   },
   //依赖收集
   //当取值的时候，应该让响应式属性和effect映射起来

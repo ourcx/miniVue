@@ -33,3 +33,8 @@ export function reactive (target) {
 export function shallowReactive (target) {
   return createReactiveObject(target, true)
 }
+
+
+export function toReactive(value){
+  return isObject(value) ? reactive(value) : value
+}
