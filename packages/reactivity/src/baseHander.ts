@@ -2,10 +2,9 @@ import { activeEffect } from './effect'
 import { reactive } from './reactive'
 import { track, trigger } from './reactiveEffct'
 import { isObject } from '../../shared/src/index';
+import { ReactiveFlags } from './constans';
 
-export enum ReactiveFlags {
-  IS_REACTIVE = '__v_isReactive' // 基本上唯一
-}
+
 
 // proxy 需要搭配relect使用，改变对象行为
 export const mutableHandlers: ProxyHandler<any> = {
