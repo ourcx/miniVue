@@ -62,6 +62,8 @@ export class ReactiveEffect {
     this._dirtyLevel = value ? DirtyLevel.Dirty : DirtyLevel.NoDirty
     //设置脏级别
   }
+  //默认是脏的->获取新的值->变为不脏的
+  //数据变化->脏的
   run () {
     this._dirtyLevel = DirtyLevel.NoDirty //表示不脏了
     if (!this.active) {
