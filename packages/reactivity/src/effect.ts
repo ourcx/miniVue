@@ -85,7 +85,11 @@ export class ReactiveEffect {
     }
   }
   stop () {
-    this.active = false //后续再改
+    if (this.active) {
+      this.active = false //后续再改
+      preCleanEffect(this)
+      postCleanEffect(this)
+    }
   }
 }
 

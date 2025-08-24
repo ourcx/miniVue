@@ -100,3 +100,4 @@ effect就是数据变化了执行一次，这个数据要是reactive的东西
 
 ####  watch设计
 
+![alt text](image.png)

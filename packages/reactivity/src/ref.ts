@@ -41,7 +41,7 @@ export function trackRefValue (ref) {
   if (activeEffect) {
     trackEffect(
       activeEffect,
-      ((ref.dep = createDep(() => (ref.dep = undefined))), 'undefined')
+      ((ref.dep = ref.dep ||createDep(() => (ref.dep = undefined))), 'undefined')
     )
   }
 }
@@ -104,3 +104,6 @@ export function proxyRefs (objectWithRefs) {
 }
 //在html使用ref响应式的时候，自动进行解构，在模板上用就不用考虑value
  
+export function isRef(value){
+  return value && value.__v_isRef;
+}
