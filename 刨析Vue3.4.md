@@ -101,3 +101,14 @@ effect就是数据变化了执行一次，这个数据要是reactive的东西
 ####  watch设计
 
 ![alt text](image.png)
+
+
+####  dom设计
+
+1. creteRender我们可以自己创建渲染器，让我们自己提供渲染方法
+2. render 用内置的渲染器来进行渲染（渲染dom元素的）
+3. h方法可以创建勇敢虚拟dom（type，propsOrChilren，children）
+
+> runtime-dom它的作用就是提供DOM API(提供一系列dom操作的api方法)
+> @vue/runtime-dom => @vue/runtime-core => @vue/reactivity
+
