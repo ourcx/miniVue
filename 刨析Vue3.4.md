@@ -112,3 +112,13 @@ effect就是数据变化了执行一次，这个数据要是reactive的东西
 > runtime-dom它的作用就是提供DOM API(提供一系列dom操作的api方法)
 > @vue/runtime-dom => @vue/runtime-core => @vue/reactivity
 
+
+
+
+
+虚拟dom的patch算法
+
+![75648147048](C:\Users\zxh\Desktop\前端\Vue\刨析Vue3.4.assets\1756481470487.png)
+
+用位运算来进行比对，很节省内存
+
