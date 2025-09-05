@@ -43,7 +43,7 @@ export function creatRenderer (renderOptions) {
       const n2 = c2[i]
 
       if(isSameVnode(n1,n2)){ 
-        patch(n1,n2,el)
+        patch(n1,n2,el) 
       }else{
         break
       }
@@ -83,13 +83,23 @@ export function creatRenderer (renderOptions) {
     //做一个映射表
     //vue2使用了旧的节点做映射表，vue使用新的做表
     const keyToNewIndexMap = new Map()
-    //k看老的是否再新的里面，没有就删除，有的就进行更新
+    //k看老的是否再新的里面，没有就删除，有的就进行更新    
+    //根据新的节点，找到对应老的位置
+    let toBepatched = e2 - s2 + 1
+    let newIndexToOldIndexMap = new Array(toBepatched).fill(0)
+    //产生一个都是零的数组
+    //这里得到的最长递增子数列，他在里面的值是不会移动的，直接跳过，只对变化的进行更新
+
+
+
+
     for(let i = s2; i <= e2; i++){
       const vnode = c2[i]
       keyToNewIndexMap.set(vnode.key,i)
       //映射表
     }
     //开始比对
+
     for(let i = s1; i <= e1; i++){ 
       const vnode = c1[i]
         const newIndex = keyToNewIndexMap.get(vnode.key)
@@ -102,6 +112,8 @@ export function creatRenderer (renderOptions) {
         }else{
           //找到了
           //  比较前后节点的差异，更新
+          newIndexToOldIndexMap[newIndex-s2] = i
+          //更新新的索引
           patch(vnode,c2[newIndex],el)
           //这边在做复用
         }
@@ -109,7 +121,6 @@ export function creatRenderer (renderOptions) {
     //调整顺序
     //倒序插入
     //新的元素多，就要去创建
-    let toBepatched = e2 - s2 + 1
     //倒序插入的个数
     for(let i = toBepatched; i >= 0; i--) {
       let newIndex = s2 + i

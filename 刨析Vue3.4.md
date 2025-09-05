@@ -166,3 +166,55 @@ h(类型,儿子)
    ​
 
    ​
+
+
+
+####  最长递增子数列
+
+c d e   2,3,4
+
+e c d h    4,2,3,0
+
+
+
+[c,d]
+
+[0,1]
+
+//通过上面的两个序列，可以求出来，最终这样的结果，就可以保证某些元素不用移动
+
+要求连续性最强的子序列
+
+贪心算法 + 二分查找
+
+![75704779560](C:\Users\zxh\Desktop\前端\Vue\刨析Vue3.4.assets\1757047795607.png)
+
+然后就是去找
+
+
+
+**实现最长递增子序列**
+
+```javascript
+function getSequence(arr){
+    const resuilt = [0]
+    const len = arr.length;
+    
+    for(let i = 0;i<len;i++){
+        const arrI = arr[i]
+        if(arrI!==0){
+            //创建节点,为了vue3处理的
+            //拿出结果集对应的最后一项,和我当前这一项来做比对
+            let resultastIndex = result[result.length-1]
+            if(arr[esultastIndex]<arrI){
+                //最后一项是小于这个数,直接把结果集这些放进去,
+                result.push(i);
+                continue
+            }
+            //这里有一个二分查找的逻辑,把后面小的去进行替换!
+        }
+    }
+    return result
+}
+```
+
