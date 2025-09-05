@@ -1,5 +1,6 @@
 import { ShapeFlags } from 'packages/shared/src/shapeFlags'
 import { isSameVnode } from './createVnode'
+import getSequence from './seq'
 
 export function creatRenderer (renderOptions) {
    const {
@@ -89,6 +90,7 @@ export function creatRenderer (renderOptions) {
     let newIndexToOldIndexMap = new Array(toBepatched).fill(0)
     //产生一个都是零的数组
     //这里得到的最长递增子数列，他在里面的值是不会移动的，直接跳过，只对变化的进行更新
+    
 
 
 
@@ -118,6 +120,10 @@ export function creatRenderer (renderOptions) {
           //这边在做复用
         }
     }
+
+    let increasingSeq = getSequence(newIndexToOldIndexMap)
+    let j = increasingSeq.length - 1
+    //索引
     //调整顺序
     //倒序插入
     //新的元素多，就要去创建
@@ -132,7 +138,13 @@ export function creatRenderer (renderOptions) {
         //列表新增的元素
         patch(null,vnode,el,anchor)
       }else{
-        hostInsert(vnode.el,el,anchor)
+        if(i == increasingSeq[j]){
+          //对某些项是不动的
+          j--
+        }else{
+          hostInsert(vnode.el,el,anchor) //倒序插入
+        }
+       
       }
     }
         //倒序比对每一个元素的

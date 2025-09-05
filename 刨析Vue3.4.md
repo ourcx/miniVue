@@ -198,6 +198,10 @@ e c d h    4,2,3,0
 ```javascript
 function getSequence(arr){
     const resuilt = [0]
+    const p = result.slice(0)
+    let start;
+    let end;
+    let middle;
     const len = arr.length;
     
     for(let i = 0;i<len;i++){
@@ -208,13 +212,52 @@ function getSequence(arr){
             let resultastIndex = result[result.length-1]
             if(arr[esultastIndex]<arrI){
                 //最后一项是小于这个数,直接把结果集这些放进去,
+                p[i] = result[result.length-1]
                 result.push(i);
                 continue
             }
             //这里有一个二分查找的逻辑,把后面小的去进行替换!
         }
+        start = 0;
+        end =result.length-1;
+        while(start<end){
+            middle = (start+end)/2 | 0 //取整
+            if(arr[result[middle]]<arrI){
+                start = middle + 1
+            }else{
+                end = middle
+            }
+        }
+        if(arrI<arr[result[start]]){
+            p[i] = result[start-1]
+            result[satart]=i
+        }
+    }
+    //p为前去节点的列表，需要根据最后一个节点做追踪
+    let l = result.length;
+    let last = result[l-1]
+    while(l-->0){
+        result[l] = last
+        last = p[last]
+        //找到最后一个
     }
     return result
 }
 ```
+
+- 该算法返回的是**索引数组**（对应原数组中的位置），而非实际值。
+- 忽略 `0` 的处理（Vue3 中用于标记未处理的节点）。
+- 回溯环节确保正确还原序列（仅最后一步需要，因为中间可能发生替换）
+
+
+
+![75706136943](C:\Users\zxh\Desktop\前端\Vue\刨析Vue3.4.assets\1757061369436.png)
+
+
+
+
+
+
+
+####  节点渲染
 
