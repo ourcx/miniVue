@@ -2,6 +2,9 @@ import { ShapeFlags } from 'packages/shared/src/shapeFlags'
 import { Fragment, isSameVnode } from './createVnode'
 import getSequence from './seq'
 import { Text } from './createVnode'
+import { reactive } from 'packages/reactivity/src/reactive'
+import { ReactiveEffect } from 'packages/reactivity/src/effect'
+import { is } from 'quasar'
 export function creatRenderer (renderOptions) {
   const {
     insert: hostInsert,
@@ -275,6 +278,52 @@ export function creatRenderer (renderOptions) {
     }
   }
 
+  const mountComponent = (n2, container, anchor) => {
+    //组件可以基于自己的状态重新渲染，就是effect
+    const { data = () => {}, render } = n2
+    //数据变成响应式
+    const state = reactive(data())
+    //组件的状态
+    const instance = {
+      state, // 状态
+      vnode: n2, // 虚拟节点
+      subTree: null, //子树
+      isMounted: false, //是否挂载
+      update: () => {} //更新函数
+    }
+    const componentUpdateFn = () => {
+      if (!instance.isMounted) {
+        //要去区分第一次还是第二次的更新
+        //第一次需要挂载，第二次需要更新
+        const vnode = render.call(state)
+        instance.subTree = vnode
+        // 修改render的this指向
+        patch(null, vnode, container, anchor)
+        instance.isMounted = true
+        //第一次渲染组件
+      }else{
+        const vnode = render.call(state)
+        const prevSubTree = instance.subTree
+        instance.subTree = vnode
+        patch(prevSubTree, vnode, container, anchor)
+        //更新组件,基于状态的
+      }
+    }
+    const effect = new ReactiveEffect(componentUpdateFn, () => update())
+    const update = (instance.update = () => {
+      effect.run()
+    })
+    update()
+  }
+
+  const processComponent = (n1, n2, container, anchor) => {
+    if (n1 === null) {
+      mountComponent(n2, container, anchor)
+    } else {
+      //组件的更新
+    }
+  }
+
   const patch = (n1, n2, container, anchor = null) => {
     if (n1 === n2) {
       //如果两个节点相同，则不需要进行更新
@@ -287,7 +336,7 @@ export function creatRenderer (renderOptions) {
       //很暴力的操作
     }
 
-    const { type } = n2
+    const { type, shapeFlag } = n2
     switch (type) {
       case Text:
         processText(n1, n2, container)
@@ -296,15 +345,21 @@ export function creatRenderer (renderOptions) {
         processFragment(n1, n2, container)
         break
       default:
+        if (shapeFlag & ShapeFlags.ELEMENT) {
+          processElement(n1, n2, container, anchor)
+        } else if (shapeFlag & ShapeFlags.COMPONENT) {
+          // 对组件的处理，vue3不建议使用函数式组件，没有性能优越
+          //只是为了兼容
+          processComponent(n1, n2, container, anchor)
+        }
     }
-    processElement(n1, n2, container, anchor)
   }
   //core中不关心如何渲染
   const unmount = vnode => {
     if (vnode.type === Fragment) {
       unmountChildren(vnode.children)
       //针对多标签的处理
-    }else{
+    } else {
       hostRemove(vnode.el)
     }
   }

@@ -269,3 +269,17 @@ function getSequence(arr){
 
 哪现在就有三种能处理的类型了，分别是元素，文本，标签
 
+
+
+
+
+####  Vue组件的渲染
+
+![75741623384](C:\Users\zxh\Desktop\前端\Vue\刨析Vue3.4.assets\1757416233841.png)
+
+div改成Fragment，才合适
+
+模板template就是一个render函数
+
+平时写上的export导出的，就是上面那样的一个对象，是作为vonde的子节点去使用的
+

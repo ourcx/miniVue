@@ -1,13 +1,17 @@
-import { isString } from "@vue/shared"
-import { ShapeFlags } from "packages/shared/src/shapeFlags"
+import { isObject, isString } from '@vue/shared'
+import { ShapeFlags } from 'packages/shared/src/shapeFlags'
 
 export const Text = Symbol('Text')
 export const Fragment = Symbol('Fragment')
-export function isSameVnode (n1,n2) {
+export function isSameVnode (n1, n2) {
   return n1.type === n2.type && n1.key === n2.key
 }
 export function createVnode (type, props?, children?) {
-  const shapeFlag = isString(type) ? ShapeFlags.ELEMENT : 0
+  const shapeFlag = isString(type)
+    ? ShapeFlags.ELEMENT
+    : isObject(type)
+    ? ShapeFlags.STATEFUL_COMPONENT
+    : 0
   const vnode = {
     __v_isVnode: true,
     type,
