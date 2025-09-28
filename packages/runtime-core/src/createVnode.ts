@@ -6,12 +6,13 @@ export const Fragment = Symbol('Fragment')
 export function isSameVnode (n1, n2) {
   return n1.type === n2.type && n1.key === n2.key
 }
+
 export function createVnode (type, props?, children?) {
   const shapeFlag = isString(type)
-    ? ShapeFlags.ELEMENT
+    ? ShapeFlags.ELEMENT // 元素
     : isObject(type)
-    ? ShapeFlags.STATEFUL_COMPONENT
-    : 0
+    ? ShapeFlags.STATEFUL_COMPONENT // 组件
+    : 0;
   const vnode = {
     __v_isVnode: true,
     type,

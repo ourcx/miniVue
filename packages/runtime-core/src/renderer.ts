@@ -5,6 +5,7 @@ import { Text } from './createVnode'
 import { reactive } from 'packages/reactivity/src/reactive'
 import { ReactiveEffect } from 'packages/reactivity/src/effect'
 import { is } from 'quasar'
+import { queueJob } from './scheduler'
 export function creatRenderer (renderOptions) {
   const {
     insert: hostInsert,
@@ -309,7 +310,7 @@ export function creatRenderer (renderOptions) {
         //更新组件,基于状态的
       }
     }
-    const effect = new ReactiveEffect(componentUpdateFn, () => update())
+    const effect = new ReactiveEffect(componentUpdateFn, () => queueJob(update))
     const update = (instance.update = () => {
       effect.run()
     })

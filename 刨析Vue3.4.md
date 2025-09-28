@@ -283,3 +283,11 @@ div改成Fragment，才合适
 
 平时写上的export导出的，就是上面那样的一个对象，是作为vonde的子节点去使用的
 
+
+
+
+
+![75904811213](C:\Users\zxh\Desktop\前端\Vue\刨析Vue3.4.assets\1759048112132.png)
+
+vue的渲染
+
