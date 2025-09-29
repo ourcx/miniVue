@@ -279,9 +279,28 @@ export function creatRenderer (renderOptions) {
     }
   }
 
+  const inittProps = (instance,rawProps) => {
+    const  props = {}
+    const attrs = {}
+    const propsOptions = instance.propsOptions
+    if(rawProps){
+      for(let key in rawProps){
+        const value = rawProps[key]
+        if(key in propsOptions){
+          props[key] = value
+        }else{
+          attrs[key] = value
+        }
+      }
+    }
+    instance.props = reactive(props)
+    //要变成响应式的，所以要使用reactive，不需要深度代理，组件里面不能更改props
+    instance.attes = attrs
+  }
+
   const mountComponent = (n2, container, anchor) => {
     //组件可以基于自己的状态重新渲染，就是effect
-    const { data = () => {}, render } = n2
+    const { data = () => {}, render,props:propsOptions = {} } = n2
     //数据变成响应式
     const state = reactive(data())
     //组件的状态
@@ -290,8 +309,19 @@ export function creatRenderer (renderOptions) {
       vnode: n2, // 虚拟节点
       subTree: null, //子树
       isMounted: false, //是否挂载
-      update: () => {} //更新函数
+      update: () => {}, //更新函数
+      props: {},
+      attes : {},
+      propsOptions,
     }
+    n2.component = instance
+    //根据propsoptions来区分传入的属性和非传入的属性
+    inittProps(instance,n2.props);
+    //元素更新更新n2.el = n1.el
+    //组件更新n2.component.subTree.el = n1.component.subTree.el
+
+
+
     const componentUpdateFn = () => {
       if (!instance.isMounted) {
         //要去区分第一次还是第二次的更新

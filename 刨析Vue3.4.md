@@ -291,3 +291,13 @@ div改成Fragment，才合适
 
 vue的渲染
 
+
+
+####  组件props和attr这个东西
+
+attr是非响应式的，props是响应式的
+
+所有属性减去props选项就是attrs
+
+这个是组件的选项处理
+
