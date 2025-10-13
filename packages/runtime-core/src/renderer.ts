@@ -6,6 +6,8 @@ import { reactive } from 'packages/reactivity/src/reactive'
 import { ReactiveEffect } from 'packages/reactivity/src/effect'
 import { is } from 'quasar'
 import { queueJob } from './scheduler'
+import { hasOwn } from '@vue/shared'
+import { creatComponentInstance, setUpComponent } from './component'
 export function creatRenderer (renderOptions) {
   const {
     insert: hostInsert,
@@ -279,61 +281,19 @@ export function creatRenderer (renderOptions) {
     }
   }
 
-  const inittProps = (instance,rawProps) => {
-    const  props = {}
-    const attrs = {}
-    const propsOptions = instance.propsOptions
-    if(rawProps){
-      for(let key in rawProps){
-        const value = rawProps[key]
-        if(key in propsOptions){
-          props[key] = value
-        }else{
-          attrs[key] = value
-        }
-      }
-    }
-    instance.props = reactive(props)
-    //要变成响应式的，所以要使用reactive，不需要深度代理，组件里面不能更改props
-    instance.attes = attrs
-  }
-
-  const mountComponent = (n2, container, anchor) => {
-    //组件可以基于自己的状态重新渲染，就是effect
-    const { data = () => {}, render,props:propsOptions = {} } = n2
-    //数据变成响应式
-    const state = reactive(data())
-    //组件的状态
-    const instance = {
-      state, // 状态
-      vnode: n2, // 虚拟节点
-      subTree: null, //子树
-      isMounted: false, //是否挂载
-      update: () => {}, //更新函数
-      props: {},
-      attes : {},
-      propsOptions,
-    }
-    n2.component = instance
-    //根据propsoptions来区分传入的属性和非传入的属性
-    inittProps(instance,n2.props);
-    //元素更新更新n2.el = n1.el
-    //组件更新n2.component.subTree.el = n1.component.subTree.el
-
-
-
-    const componentUpdateFn = () => {
+function setupRenderEffect(instance, container, anchor) {
+      const componentUpdateFn = () => {
       if (!instance.isMounted) {
         //要去区分第一次还是第二次的更新
         //第一次需要挂载，第二次需要更新
-        const vnode = render.call(state)
+        const vnode = render.call(instance.proxy, instance.proxy)
         instance.subTree = vnode
         // 修改render的this指向
         patch(null, vnode, container, anchor)
         instance.isMounted = true
         //第一次渲染组件
-      }else{
-        const vnode = render.call(state)
+      } else {
+        const vnode = render.call(instance.proxy, instance.proxy)
         const prevSubTree = instance.subTree
         instance.subTree = vnode
         patch(prevSubTree, vnode, container, anchor)
@@ -345,6 +305,23 @@ export function creatRenderer (renderOptions) {
       effect.run()
     })
     update()
+}
+
+  const mountComponent = (n2, container, anchor) => {
+    //1.创建组件实例
+    //2.给组件实例赋值
+    //3.创建一个effect
+    const instance = (n2.component = creatComponentInstance(n2))
+    setUpComponent(instance)
+    //组件可以基于自己的状态重新渲染，就是effect
+    n2.component = instance
+    //根据propsoptions来区分传入的属性和非传入的属性
+    //元素更新更新n2.el = n1.el
+    //组件更新n2.component.subTree.el = n1.component.subTree.el
+    //创建一个effect，当数据变化后会重新执行这个函数
+    //要区分是初始化还是更新
+    //初始化的时候会创建真实节点，更新的时候会进行比对
+    setupRenderEffect(instance, container, anchor)
   }
 
   const processComponent = (n1, n2, container, anchor) => {
