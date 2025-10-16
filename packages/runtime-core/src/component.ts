@@ -1,6 +1,6 @@
 import { reactive } from '@vue/reactivity'
 import { hasOwn, isFunction } from '@vue/shared'
-import { render } from '../../runtime-dom/src/index';
+import { render } from '../../runtime-dom/src/index'
 
 export function creatComponentInstance (vnode) {
   const instance = {
@@ -68,10 +68,15 @@ export function setUpComponent (instance) {
     }
   })
 
-  const { data,render } = vnode.type
-  if (!isFunction(data)) return console.warn('data option must be a function')
-  //data必须是一个函数
-  instance.data = reactive(data.call(instance.proxy))
+  const { data=()=>{}, render } = vnode.type
+  if (!isFunction(data)) {
+    console.warn('data option must be a function')
+  } else {
+    //data必须是一个函数
+    instance.data = reactive(data.call(instance.proxy))
+    //注意data可能在一些组件没有传
+  }
+
   //data中的this指向组件实例,可以拿到proxy
   instance.render = render
 }

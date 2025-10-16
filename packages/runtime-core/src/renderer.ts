@@ -8,6 +8,7 @@ import { is } from 'quasar'
 import { queueJob } from './scheduler'
 import { hasOwn } from '@vue/shared'
 import { creatComponentInstance, setUpComponent } from './component'
+import { render } from '../../runtime-dom/src/index'
 export function creatRenderer (renderOptions) {
   const {
     insert: hostInsert,
@@ -281,8 +282,9 @@ export function creatRenderer (renderOptions) {
     }
   }
 
-function setupRenderEffect(instance, container, anchor) {
-      const componentUpdateFn = () => {
+  function setupRenderEffect (instance, container, anchor) {
+    const { render } = instance
+    const componentUpdateFn = () => {
       if (!instance.isMounted) {
         //要去区分第一次还是第二次的更新
         //第一次需要挂载，第二次需要更新
@@ -305,7 +307,7 @@ function setupRenderEffect(instance, container, anchor) {
       effect.run()
     })
     update()
-}
+  }
 
   const mountComponent = (n2, container, anchor) => {
     //1.创建组件实例
@@ -324,11 +326,51 @@ function setupRenderEffect(instance, container, anchor) {
     setupRenderEffect(instance, container, anchor)
   }
 
+  const hasPropsChange = (prevProps, nextProps) => {
+    let nKeys = Object.keys(nextProps)
+    if (nKeys.length !== Object.keys(prevProps).length) {
+      return true
+    }
+    for (let i = 0; i < nKeys.length; i++) {
+      if (prevProps[nKeys[i]] !== nextProps[nKeys[i]]) {
+        return true
+      }
+    }
+    return false
+  }
+
+  const updataProps = (instance, nextProps, prevProps) => {
+    //instance.props -> nextProps
+    //复用的是dom元素
+    // if (hasPropsChange(prevProps, nextProps)) {
+    //   for (let key in nextProps) {
+    //     instance.props[key] = nextProps[key];
+
+    //   }
+    //   //属性更新
+    //   for (let key in prevProps) {
+    //     if (!(key in nextProps)) {
+    //       delete instance.props[key]
+    //     }
+    //   }
+    // }
+  }
+
+  function updateComponent (n1, n2) {
+    const { props: nextProps } = n2
+    const { props: prevProps } = n1
+    const instance = (n2.component = n1.component)
+    //比较差异
+    updataProps(instance, nextProps, prevProps)
+  }
+
   const processComponent = (n1, n2, container, anchor) => {
     if (n1 === null) {
       mountComponent(n2, container, anchor)
     } else {
       //组件的更新
+      //比较两个属性再做更新
+      updateComponent(n1, n2)
     }
   }
 
