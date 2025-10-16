@@ -282,6 +282,13 @@ export function creatRenderer (renderOptions) {
     }
   }
 
+
+  const updataComponentPreRender = (instance, nextVNode) => { 
+    instance.next = null;
+    instance.vnode = nextVNode
+    updataProps(instance, nextVNode.props,nextVNode.props)
+  }
+
   function setupRenderEffect (instance, container, anchor) {
     const { render } = instance
     const componentUpdateFn = () => {
@@ -295,6 +302,11 @@ export function creatRenderer (renderOptions) {
         instance.isMounted = true
         //第一次渲染组件
       } else {
+        const {next}  = instance
+        if (next) {
+          updataComponentPreRender(instance, next)
+          // 更新组件solt,props
+        }
         const vnode = render.call(instance.proxy, instance.proxy)
         const prevSubTree = instance.subTree
         instance.subTree = vnode
@@ -342,26 +354,41 @@ export function creatRenderer (renderOptions) {
   const updataProps = (instance, nextProps, prevProps) => {
     //instance.props -> nextProps
     //复用的是dom元素
-    // if (hasPropsChange(prevProps, nextProps)) {
-    //   for (let key in nextProps) {
-    //     instance.props[key] = nextProps[key];
+    if (hasPropsChange(prevProps, nextProps)) {
+      for (let key in nextProps) {
+        instance.props[key] = nextProps[key]
+      }
+      //属性更新
+      for (let key in prevProps) {
+        if (!(key in nextProps)) {
+          delete instance.props[key]
+        }
+      }
+    }
+  }
 
-    //   }
-    //   //属性更新
-    //   for (let key in prevProps) {
-    //     if (!(key in nextProps)) {
-    //       delete instance.props[key]
-    //     }
-    //   }
-    // }
+  const shouldComponentUpdate = (instance,n1,n2) => {
+    const { props: nextProps,children:prevChildren } = n2
+    const { props: prevProps,children:nextChildren } = n1
+    if (prevChildren || nextChildren) {
+      return true
+      //有插槽直接重新渲染
+    }
+    if(prevChildren === nextChildren)return false
+    // updataProps(instance, nextProps, prevProps)
+    return hasPropsChange(prevProps, nextProps)
   }
 
   function updateComponent (n1, n2) {
-    const { props: nextProps } = n2
-    const { props: prevProps } = n1
     const instance = (n2.component = n1.component)
     //比较差异
-    updataProps(instance, nextProps, prevProps)
+
+    if (shouldComponentUpdate(instance, n2, n1)) {
+      instance.next = n2 //有next就是属性或者插槽更新
+
+      instance.updata()
+      //让更新逻辑统一
+    }
   }
 
   const processComponent = (n1, n2, container, anchor) => {
