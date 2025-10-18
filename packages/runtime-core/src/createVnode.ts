@@ -7,7 +7,7 @@ export function isSameVnode (n1, n2) {
   return n1.type === n2.type && n1.key === n2.key
 }
 
-export function createVnode (type, props?, children?) {
+export function createVnode(type, props?, children?) {
   const shapeFlag = isString(type)
     ? ShapeFlags.ELEMENT // 元素
     : isObject(type)
@@ -28,7 +28,9 @@ export function createVnode (type, props?, children?) {
       vnode.shapeFlag |= ShapeFlags.ARRAY_CHILDREN
       //或等
       //vnode.shapeFlag = vnode.shapeFlag | ShapeFlags.ARRAY_CHILDREN;
-    } else {
+    }else if (isObject(children)) {
+      vnode.shapeFlag |= ShapeFlags.SLOT_CHILDREN // 组件的孩子
+    }else {
       children = String(children)
       vnode.shapeFlag |= ShapeFlags.TEXT_CHILDREN
     }

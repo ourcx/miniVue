@@ -2,6 +2,7 @@ import { proxyRefs, reactive } from '@vue/reactivity'
 import { hasOwn, isFunction } from '@vue/shared'
 import { render } from '../../runtime-dom/src/index'
 import { set } from '@vueuse/core'
+import { ShapeFlags } from '../../shared/src/shapeFlags';
 
 export function creatComponentInstance (vnode) {
   const instance = {
@@ -12,6 +13,7 @@ export function creatComponentInstance (vnode) {
     update: () => {}, //更新函数
     props: {},
     attrs: {},
+    slots:{},
     propsOptions: vnode.type.props || {}, //属性选项
     component: null, //组件实例
     proxy: null, //代理让它访问data和props
@@ -39,12 +41,23 @@ const inittProps = (instance, rawProps) => {
   instance.attes = attrs
 }
 
+export const initSlots = (instance, children) => {
+  if(instance.vnode.ShapeFlags & ShapeFlags.SLOT_CHILDREN){
+    instance.slots = children
+  }else{
+    instance.slots = {}
+  }
+}
+//赋值插槽
 export function setUpComponent (instance) {
   const { vnode } = instance
+
   inittProps(instance, vnode.props)
+  initSlots(instance, vnode.children)
   //赋值属性
   const publicProperty = {
-    $attrs: instance => instance.attrs
+    $attrs: instance => instance.attrs,
+    $slots:(instance) =>  instance.slots
   }
   //赋值代理对象
   instance.proxy = new Proxy(instance, {
@@ -57,6 +70,10 @@ export function setUpComponent (instance) {
         return props[key]
       }else if(attrs && hasOwn(attrs, key)){
         return attrs[key]
+      }
+      const getter = publicProperty[key]
+      if(getter){
+        return getter(target)
       }
     },
     set (target, key, value) {
