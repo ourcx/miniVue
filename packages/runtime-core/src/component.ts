@@ -1,6 +1,7 @@
-import { reactive } from '@vue/reactivity'
+import { proxyRefs, reactive } from '@vue/reactivity'
 import { hasOwn, isFunction } from '@vue/shared'
 import { render } from '../../runtime-dom/src/index'
+import { set } from '@vueuse/core'
 
 export function creatComponentInstance (vnode) {
   const instance = {
@@ -13,7 +14,8 @@ export function creatComponentInstance (vnode) {
     attrs: {},
     propsOptions: vnode.type.props || {}, //属性选项
     component: null, //组件实例
-    proxy: null //代理让它访问data和props
+    proxy: null, //代理让它访问data和props
+    setupState: {}
   }
   return instance
 }
@@ -53,6 +55,8 @@ export function setUpComponent (instance) {
         return data[key]
       } else if (props && hasOwn(props, key)) {
         return props[key]
+      }else if(attrs && hasOwn(attrs, key)){
+        return attrs[key]
       }
     },
     set (target, key, value) {
@@ -63,12 +67,26 @@ export function setUpComponent (instance) {
         // props[key] = value
         console.warn('props is readonly,只读属性')
         return false
+      }else if(attrs && hasOwn(attrs, key)){
+        attrs[key] = value
       }
       return true
     }
   })
 
-  const { data=()=>{}, render } = vnode.type
+  const { data=()=>{}, render,setup } = vnode.type
+
+  if(setup){
+    const setupContext = {}
+    const setupResult = setup(instance.props, setupContext)
+    if (isFunction(setupResult)) {
+      instance.render = setupResult
+    }else{
+      instance.setupState = proxyRefs(setupResult)
+      //自动解包ref，返回的对象中如果有ref，那么这个对象中的属性就是ref的value，否则就是ref本身
+    }
+  }
+
   if (!isFunction(data)) {
     console.warn('data option must be a function')
   } else {
